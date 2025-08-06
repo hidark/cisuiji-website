@@ -1,6 +1,6 @@
 .app {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+  background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-family);
   display: flex;
@@ -9,7 +9,7 @@
   position: relative;
 }
 
-/* 添加背景动画效果 */
+/* 更精美的背景效果 */
 .app::before {
   content: '';
   position: absolute;
@@ -17,17 +17,46 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+  background: 
+    radial-gradient(ellipse at top left, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+    radial-gradient(ellipse at top right, rgba(236, 72, 153, 0.1) 0%, transparent 40%),
+    radial-gradient(ellipse at bottom left, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+    radial-gradient(ellipse at bottom right, rgba(245, 158, 11, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at center, rgba(99, 102, 241, 0.03) 0%, transparent 70%);
   pointer-events: none;
-  animation: backgroundFloat 20s ease-in-out infinite;
+  animation: backgroundPulse 30s ease-in-out infinite;
 }
 
-@keyframes backgroundFloat {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(-20px, -20px) scale(1.05); }
-  66% { transform: translate(20px, -10px) scale(0.95); }
+.app::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255, 255, 255, 0.01) 35px, rgba(255, 255, 255, 0.01) 70px);
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+@keyframes backgroundPulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  25% { 
+    opacity: 0.8;
+    transform: scale(1.1) rotate(1deg);
+  }
+  50% { 
+    opacity: 0.9;
+    transform: scale(0.95) rotate(-1deg);
+  }
+  75% { 
+    opacity: 0.85;
+    transform: scale(1.05) rotate(0.5deg);
+  }
 }
 
 .app-main {
@@ -46,21 +75,43 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: var(--z-overlay);
-  background: rgba(15, 15, 35, 0.9);
-  backdrop-filter: blur(20px) saturate(180%);
-  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.03) 0%, 
+    rgba(236, 72, 153, 0.02) 100%);
+  backdrop-filter: blur(40px) saturate(200%);
+  border-radius: 20px;
   padding: var(--spacing-sm);
   border: 1px solid var(--border-primary);
-  box-shadow: var(--shadow-xl), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 
+    var(--shadow-xl),
+    0 0 60px rgba(99, 102, 241, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   transition: all var(--transition-base);
   max-width: 90vw;
+  animation: slideDown 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .midi-section:hover {
-  box-shadow: var(--shadow-xl), 
-              0 0 40px rgba(102, 126, 234, 0.2),
-              inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 
+    var(--shadow-xl),
+    0 0 80px rgba(99, 102, 241, 0.2),
+    0 0 120px rgba(236, 72, 153, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  border-color: var(--border-glow);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .keyboard-section {
@@ -169,10 +220,12 @@
   from {
     opacity: 0;
     transform: translateY(20px);
+    filter: blur(4px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+    filter: blur(0px);
   }
 }
 

@@ -1,12 +1,31 @@
 .midiControls {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #8e44ad, #9b59b6);
-  border-radius: 15px;
-  box-shadow: 0 8px 25px rgba(142, 68, 173, 0.3);
+  background: linear-gradient(135deg,
+    rgba(99, 102, 241, 0.05) 0%,
+    rgba(236, 72, 153, 0.03) 100%);
+  backdrop-filter: blur(30px) saturate(200%);
+  border-radius: 20px;
+  border: 1px solid var(--border-primary);
+  box-shadow: 
+    var(--shadow-xl),
+    0 0 60px rgba(99, 102, 241, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   color: white;
   max-width: 100%;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
+  animation: slideIn 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .midiControls.minimized {
@@ -17,10 +36,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 15px 15px 0 0;
+  padding: 14px 20px;
+  background: linear-gradient(135deg,
+    rgba(99, 102, 241, 0.1) 0%,
+    rgba(236, 72, 153, 0.08) 100%);
+  border-radius: 20px 20px 0 0;
   min-height: 20px;
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .minimized .header {
@@ -70,19 +92,43 @@
 }
 
 .uploadButton {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  background: linear-gradient(135deg, 
+    var(--color-accent) 0%, 
+    #dc2626 100%);
   color: white;
   border: none;
-  padding: 12px 25px;
-  border-radius: 25px;
-  font-size: 16px;
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+  transition: all var(--transition-fast);
+  box-shadow: 
+    0 4px 20px rgba(245, 158, 11, 0.3),
+    0 0 30px rgba(245, 158, 11, 0.1);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.uploadButton::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s;
+}
+
+.uploadButton:hover::before {
+  width: 250px;
+  height: 250px;
 }
 
 .uploadButton:hover:not(:disabled) {
