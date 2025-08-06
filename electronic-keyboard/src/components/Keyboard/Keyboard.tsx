@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Key } from '../Key/Key';
-import { generate64Keys, getFrequency, getKeyNote } from '../../utils/musicUtils';
+import { generateFullKeyboard, generateResponsiveKeyboard, getFrequency, getKeyNote } from '../../utils/musicUtils';
+import { ChevronDownIcon } from '../Icons';
 import styles from './Keyboard.module.css';
 
 interface KeyboardProps {
@@ -10,14 +11,60 @@ interface KeyboardProps {
 export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
   const [pressedKeys, setPressedKeys] = useState<string[]>([]);
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const [showLeftScroll, setShowLeftScroll] = useState(false);
+  const [showRightScroll, setShowRightScroll] = useState(false);
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const keyboardWrapperRef = useRef<HTMLDivElement>(null);
   const keyboardRef = useRef<HTMLDivElement>(null);
   
-  // 生成所有64个键
-  const allKeys = generate64Keys();
+  // 根据屏幕宽度生成适当数量的键
+  const allKeys = screenWidth >= 768 ? generateFullKeyboard() : generateResponsiveKeyboard(screenWidth);
 
   useEffect(() => {
     setAudioContext(new (window.AudioContext || (window as any).webkitAudioContext)());
   }, []);
+
+  // 监听窗口大小变化
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // 检查是否需要显示滚动提示
+  useEffect(() => {
+    const checkScroll = () => {
+      const wrapper = keyboardWrapperRef.current;
+      if (!wrapper) return;
+      
+      const hasScroll = wrapper.scrollWidth > wrapper.clientWidth;
+      if (hasScroll) {
+        setShowLeftScroll(wrapper.scrollLeft > 0);
+        setShowRightScroll(wrapper.scrollLeft + wrapper.clientWidth < wrapper.scrollWidth - 1);
+      } else {
+        setShowLeftScroll(false);
+        setShowRightScroll(false);
+      }
+    };
+    
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    
+    const wrapper = keyboardWrapperRef.current;
+    if (wrapper) {
+      wrapper.addEventListener('scroll', checkScroll);
+    }
+    
+    return () => {
+      window.removeEventListener('resize', checkScroll);
+      if (wrapper) {
+        wrapper.removeEventListener('scroll', checkScroll);
+      }
+    };
+  }, [allKeys]);
 
   // 播放音符
   const playNote = (note: string) => {
@@ -46,6 +93,9 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
     if (note && !pressedKeys.includes(note)) {
       setPressedKeys(prev => [...prev, note]);
       playNote(note);
+      
+      // 自动滚动到按下的键
+      scrollToNote(note);
     }
   };
 
@@ -56,6 +106,34 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
     }
   };
 
+  // 滚动到指定音符
+  const scrollToNote = (note: string) => {
+    const wrapper = keyboardWrapperRef.current;
+    const keyboard = keyboardRef.current;
+    if (!wrapper || !keyboard) return;
+    
+    // 找到对应的键元素
+    const keyElements = keyboard.children;
+    for (let i = 0; i < keyElements.length; i++) {
+      const keyElement = keyElements[i] as HTMLElement;
+      if (keyElement.getAttribute('data-note') === note) {
+        const keyLeft = keyElement.offsetLeft;
+        const keyWidth = keyElement.offsetWidth;
+        const wrapperWidth = wrapper.clientWidth;
+        const scrollLeft = wrapper.scrollLeft;
+        
+        // 如果键不在视野内，滚动到它
+        if (keyLeft < scrollLeft || keyLeft + keyWidth > scrollLeft + wrapperWidth) {
+          wrapper.scrollTo({
+            left: keyLeft - (wrapperWidth - keyWidth) / 2,
+            behavior: 'smooth'
+          });
+        }
+        break;
+      }
+    }
+  };
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
@@ -63,7 +141,7 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [pressedKeys]);
+  }, [pressedKeys, audioContext]);
 
   // 点击播放音符
   const handleKeyClick = (note: string) => {
@@ -74,12 +152,34 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
     }, 200);
   };
 
+  // 初始滚动到中间位置（C4附近）
+  useEffect(() => {
+    const wrapper = keyboardWrapperRef.current;
+    if (wrapper && wrapper.scrollWidth > wrapper.clientWidth) {
+      // 滚动到大约中间位置
+      setTimeout(() => {
+        wrapper.scrollTo({
+          left: (wrapper.scrollWidth - wrapper.clientWidth) / 2,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }, [allKeys]);
 
   return (
     <div className={styles.keyboardContainer}>
+      {/* 左侧滚动提示 */}
+      {showLeftScroll && (
+        <div className={`${styles.scrollHint} ${styles.scrollHintLeft}`}>
+          <div style={{ transform: 'rotate(90deg)' }}>
+            <ChevronDownIcon size={24} />
+          </div>
+        </div>
+      )}
+      
       {/* 键盘区域 */}
-      <div className={styles.keyboardWrapper} ref={keyboardRef}>
-        <div className={styles.keyboard}>
+      <div className={styles.keyboardWrapper} ref={keyboardWrapperRef}>
+        <div className={styles.keyboard} ref={keyboardRef}>
           {allKeys.map(({ note, black }) => (
             <Key
               key={note}
@@ -87,10 +187,20 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
               isBlack={black}
               isPressed={pressedKeys.includes(note) || activeNotes.has(note)}
               onClick={handleKeyClick}
+              data-note={note}
             />
           ))}
         </div>
       </div>
+      
+      {/* 右侧滚动提示 */}
+      {showRightScroll && (
+        <div className={`${styles.scrollHint} ${styles.scrollHintRight}`}>
+          <div style={{ transform: 'rotate(-90deg)' }}>
+            <ChevronDownIcon size={24} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

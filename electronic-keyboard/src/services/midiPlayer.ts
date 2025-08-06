@@ -194,7 +194,7 @@ export class MidiPlayer {
           const noteOnId = Tone.Transport.schedule((time) => {
             if (this.isPlaying) {
               // 实际播放音符
-              this.playNote(note.name, note.velocity, note.duration, time);
+              this.playScheduledNote(note.name, note.velocity, note.duration, time);
               
               // 通知UI更新
               if (this.options.onNoteOn) {
@@ -221,7 +221,7 @@ export class MidiPlayer {
     Tone.Transport.start();
   }
 
-  private playNote(noteName: string, velocity: number, duration: number, time: number): void {
+  private playScheduledNote(noteName: string, velocity: number, duration: number, time: number): void {
     try {
       // 播放音符，velocity已经内置在triggerAttackRelease中
       this.synth.triggerAttackRelease(noteName, duration, time, velocity * 0.5); // 降低音量避免失真
@@ -295,6 +295,21 @@ export class MidiPlayer {
   // 获取所有可用音色
   getAvailableInstruments(): InstrumentConfig[] {
     return INSTRUMENTS;
+  }
+
+  // 公开的播放单个音符方法，用于外部调用（如音频分析后的播放）
+  playNote(noteName: string, duration: number = 0.5, velocity: number = 0.5): void {
+    try {
+      // 确保音频上下文处于运行状态
+      if (Tone.context.state !== 'running') {
+        Tone.start();
+      }
+      
+      // 播放音符
+      this.synth.triggerAttackRelease(noteName, duration, Tone.now(), velocity);
+    } catch (error) {
+      console.warn('播放音符失败:', noteName, error);
+    }
   }
 
   // Getters

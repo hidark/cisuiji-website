@@ -3,64 +3,169 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: var(--spacing-sm);
   background: transparent;
   height: 100%;
   width: 100%;
+  position: relative;
   overflow: hidden;
 }
 
 .keyboardWrapper {
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   background: transparent;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) transparent;
+  padding-bottom: var(--spacing-sm);
 }
 
+/* 自定义滚动条样式 */
+.keyboardWrapper::-webkit-scrollbar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+}
+
+.keyboardWrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+}
+
+.keyboardWrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-dark));
+  border-radius: var(--radius-sm);
+}
+
+.keyboardWrapper::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, var(--color-primary-light), var(--color-primary));
+}
 
 .keyboard {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 95%;
-  max-width: 100%;
+  justify-content: flex-start;
+  align-items: flex-start;
+  min-width: max-content;
+  height: 100%;
   background: linear-gradient(135deg, #2d3748, #4a5568);
-  border-radius: 15px;
-  padding: 8px;
-  margin: 0;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm);
+  margin: 0 auto;
   box-shadow: 
     0 10px 30px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  flex-wrap: wrap;
-  gap: 2px;
+  gap: 1px;
+  position: relative;
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
+/* 滚动提示 */
+.scrollHint {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 60px;
+  background: linear-gradient(90deg, rgba(102, 126, 234, 0.8), transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  pointer-events: none;
+  animation: pulse 2s infinite;
+  z-index: 10;
+}
+
+.scrollHintLeft {
+  left: 0;
+  background: linear-gradient(90deg, rgba(15, 15, 35, 0.9), transparent);
+}
+
+.scrollHintRight {
+  right: 0;
+  background: linear-gradient(-90deg, rgba(15, 15, 35, 0.9), transparent);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* 响应式设计 - 调整不同屏幕下的键盘高度 */
+@media (min-width: 1440px) {
   .keyboardContainer {
-    padding: 8px;
+    padding: var(--spacing-md);
   }
   
   .keyboard {
-    width: 98%;
-    padding: 6px;
-    border-radius: 10px;
+    padding: var(--spacing-md);
+    gap: 2px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .keyboardContainer {
+    padding: var(--spacing-sm);
+  }
+  
+  .keyboard {
+    padding: var(--spacing-sm);
     gap: 1px;
+  }
+  
+  .keyboardWrapper {
+    padding-bottom: var(--spacing-xs);
+  }
+}
+
+@media (max-width: 768px) {
+  .keyboardContainer {
+    padding: var(--spacing-xs);
+  }
+  
+  .keyboard {
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-md);
+    gap: 1px;
+  }
+  
+  .keyboardWrapper::-webkit-scrollbar {
+    height: 6px;
   }
 }
 
 @media (max-width: 480px) {
   .keyboardContainer {
-    padding: 5px;
+    padding: var(--spacing-xs);
   }
   
   .keyboard {
-    width: 99%;
-    padding: 4px;
-    border-radius: 8px;
-    gap: 1px;
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    gap: 0.5px;
+  }
+  
+  .keyboardWrapper::-webkit-scrollbar {
+    height: 4px;
+  }
+}
+
+/* 横屏模式优化 */
+@media (orientation: landscape) and (max-height: 480px) {
+  .keyboardContainer {
+    padding: var(--spacing-xs);
+  }
+  
+  .keyboard {
+    padding: var(--spacing-xs);
+  }
+  
+  .keyboardWrapper {
+    padding-bottom: 0;
   }
 }

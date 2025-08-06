@@ -1,23 +1,22 @@
 .key {
   position: relative;
   border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  padding-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-xs);
   cursor: pointer;
   user-select: none;
   transition: all var(--transition-fast);
   box-shadow: var(--shadow-sm);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  flex-shrink: 0;
 }
 
 .white {
-  flex: 1;
-  min-width: 12px;
-  max-width: 50px;
+  width: 28px;
   height: 120px;
   background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
   color: var(--bg-tertiary);
@@ -36,13 +35,11 @@
 }
 
 .black {
-  flex: 0.6;
-  min-width: 8px;
-  max-width: 32px;
+  width: 20px;
   height: 75px;
   background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
   color: #ecf0f1;
-  margin: 0 -8px;
+  margin: 0 -10px;
   z-index: calc(var(--z-base) + 1);
   border: 1px solid #34495e;
 }
@@ -75,100 +72,120 @@
 }
 
 .noteName {
-  font-size: clamp(8px, 1.5vw, 12px);
+  font-size: 9px;
   font-weight: 600;
-  opacity: 0.6;
+  opacity: 0.5;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
   pointer-events: none;
   transition: opacity var(--transition-fast);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  margin-bottom: 2px;
 }
 
 .key:hover .noteName {
-  opacity: 0.9;
+  opacity: 0.8;
 }
 
 .black .noteName {
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.2);
+  font-size: 8px;
 }
 
-/* 触摸优化 - 增加触摸目标大小 */
-@media (pointer: coarse) {
-  .key {
-    position: relative;
-  }
-  
-  .key::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: -4px;
-    right: -4px;
-    bottom: -8px;
-    z-index: -1;
-  }
-}
-
-/* 响应式调整 - 确保移动端最小44px触摸目标 */
-@media (max-width: 768px) {
+/* 大屏幕 - 更大的键 */
+@media (min-width: 1440px) {
   .white {
-    height: 100px;
-    min-width: 20px;
-    max-width: 44px;
+    width: 32px;
+    height: 140px;
   }
   
   .black {
-    height: 65px;
-    min-width: 16px;
-    max-width: 32px;
-    margin: 0 -8px;
+    width: 22px;
+    height: 85px;
+    margin: 0 -11px;
   }
   
   .noteName {
-    font-size: clamp(9px, 2vw, 11px);
+    font-size: 10px;
   }
 }
 
-@media (max-width: 480px) {
+/* 中等屏幕 */
+@media (max-width: 1024px) {
   .white {
-    height: 80px;
-    min-width: 18px;
-    max-width: 40px;
+    width: 26px;
+    height: 110px;
   }
   
   .black {
-    height: 55px;
-    min-width: 14px;
-    max-width: 28px;
-    margin: 0 -7px;
-  }
-  
-  .key {
-    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-  }
-  
-  .noteName {
-    font-size: 9px;
-    opacity: 0.5;
-  }
-}
-
-/* 小屏幕优化 */
-@media (max-width: 360px) {
-  .white {
+    width: 18px;
     height: 70px;
-    min-width: 16px;
-    max-width: 36px;
-  }
-  
-  .black {
-    height: 48px;
-    min-width: 12px;
-    max-width: 24px;
-    margin: 0 -6px;
+    margin: 0 -9px;
   }
   
   .noteName {
     font-size: 8px;
+  }
+}
+
+/* 平板 */
+@media (max-width: 768px) {
+  .white {
+    width: 24px;
+    height: 100px;
+  }
+  
+  .black {
+    width: 16px;
+    height: 65px;
+    margin: 0 -8px;
+  }
+  
+  .noteName {
+    font-size: 7px;
+    writing-mode: initial;
+    text-orientation: initial;
+  }
+}
+
+/* 手机 */
+@media (max-width: 480px) {
+  .white {
+    width: 20px;
+    height: 80px;
+  }
+  
+  .black {
+    width: 14px;
+    height: 55px;
+    margin: 0 -7px;
+  }
+  
+  .key {
+    border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+  }
+  
+  .noteName {
+    font-size: 6px;
+    opacity: 0.4;
+  }
+}
+
+/* 小屏幕手机 */
+@media (max-width: 360px) {
+  .white {
+    width: 18px;
+    height: 70px;
+  }
+  
+  .black {
+    width: 12px;
+    height: 48px;
+    margin: 0 -6px;
+  }
+  
+  .noteName {
+    font-size: 5px;
   }
 }
 
@@ -183,8 +200,8 @@
   }
   
   .noteName {
-    font-size: 8px;
-    padding-bottom: 2px;
+    font-size: 6px;
+    padding-bottom: 1px;
   }
 }
 
@@ -209,4 +226,21 @@
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   z-index: calc(var(--z-base) + 2);
+}
+
+/* 触摸优化 - 增加触摸目标大小 */
+@media (pointer: coarse) {
+  .key {
+    position: relative;
+  }
+  
+  .key::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -2px;
+    right: -2px;
+    bottom: -4px;
+    z-index: -1;
+  }
 }
