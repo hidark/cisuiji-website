@@ -103,6 +103,42 @@
   gap: 8px;
 }
 
+/* 错误消息样式 */
+.errorMessage {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 8px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 屏幕阅读器专用文本 */
+:global(.sr-only) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 .fileInfo {
   display: flex;
   flex-direction: column;
@@ -164,6 +200,28 @@
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(10px);
+}
+
+/* SVG图标样式 */
+.controlButton svg,
+.uploadButton svg,
+.toggleButton svg,
+.volumeLabel svg {
+  flex-shrink: 0;
+}
+
+/* 加载动画 */
+:global(.animate-spin) {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .controlButton:hover:not(:disabled) {

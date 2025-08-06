@@ -1,15 +1,17 @@
 .key {
   position: relative;
-  border: 1px solid #000;
-  border-radius: 0 0 8px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  padding-bottom: 8px;
+  padding-bottom: var(--spacing-sm);
   cursor: pointer;
   user-select: none;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .white {
@@ -18,14 +20,19 @@
   max-width: 50px;
   height: 120px;
   background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
-  color: #2c3e50;
-  z-index: 1;
-  border: 1px solid #dee2e6;
+  color: var(--bg-tertiary);
+  z-index: var(--z-base);
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .white:hover {
   background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
   transform: translateY(1px);
+}
+
+.white:active {
+  transform: translateY(3px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .black {
@@ -36,7 +43,7 @@
   background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
   color: #ecf0f1;
   margin: 0 -8px;
-  z-index: 2;
+  z-index: calc(var(--z-base) + 1);
   border: 1px solid #34495e;
 }
 
@@ -45,57 +52,161 @@
   transform: translateY(1px);
 }
 
+.black:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 .pressed {
-  background: linear-gradient(180deg, #3498db 0%, #2980b9 100%) !important;
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-dark) 100%) !important;
   color: white !important;
-  transform: translateY(2px) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(3px) !important;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  animation: keyPress 0.1s ease;
+}
+
+@keyframes keyPress {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(3px);
+  }
 }
 
 .noteName {
-  font-size: clamp(6px, 1.5vw, 10px);
+  font-size: clamp(8px, 1.5vw, 12px);
   font-weight: 600;
-  opacity: 0.7;
+  opacity: 0.6;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+}
+
+.key:hover .noteName {
+  opacity: 0.9;
 }
 
 .black .noteName {
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.1);
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.2);
 }
 
-/* 添加一些按键的特殊效果 */
-.key:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+/* 触摸优化 - 增加触摸目标大小 */
+@media (pointer: coarse) {
+  .key {
+    position: relative;
+  }
+  
+  .key::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -4px;
+    right: -4px;
+    bottom: -8px;
+    z-index: -1;
+  }
 }
 
-/* 响应式调整 */
+/* 响应式调整 - 确保移动端最小44px触摸目标 */
 @media (max-width: 768px) {
   .white {
     height: 100px;
-    min-width: 10px;
-    max-width: 40px;
+    min-width: 20px;
+    max-width: 44px;
   }
   
   .black {
     height: 65px;
-    min-width: 6px;
-    max-width: 26px;
-    margin: 0 -6px;
+    min-width: 16px;
+    max-width: 32px;
+    margin: 0 -8px;
+  }
+  
+  .noteName {
+    font-size: clamp(9px, 2vw, 11px);
   }
 }
 
 @media (max-width: 480px) {
   .white {
     height: 80px;
-    min-width: 8px;
-    max-width: 30px;
+    min-width: 18px;
+    max-width: 40px;
   }
   
   .black {
-    height: 50px;
-    min-width: 5px;
-    max-width: 20px;
-    margin: 0 -5px;
+    height: 55px;
+    min-width: 14px;
+    max-width: 28px;
+    margin: 0 -7px;
   }
+  
+  .key {
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  }
+  
+  .noteName {
+    font-size: 9px;
+    opacity: 0.5;
+  }
+}
+
+/* 小屏幕优化 */
+@media (max-width: 360px) {
+  .white {
+    height: 70px;
+    min-width: 16px;
+    max-width: 36px;
+  }
+  
+  .black {
+    height: 48px;
+    min-width: 12px;
+    max-width: 24px;
+    margin: 0 -6px;
+  }
+  
+  .noteName {
+    font-size: 8px;
+  }
+}
+
+/* 横屏模式优化 */
+@media (orientation: landscape) and (max-height: 480px) {
+  .white {
+    height: 60px;
+  }
+  
+  .black {
+    height: 40px;
+  }
+  
+  .noteName {
+    font-size: 8px;
+    padding-bottom: 2px;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .white {
+    border: 2px solid #000;
+  }
+  
+  .black {
+    border: 2px solid #fff;
+  }
+  
+  .pressed {
+    outline: 3px solid var(--color-primary);
+    outline-offset: -3px;
+  }
+}
+
+/* 焦点样式 - 键盘导航 */
+.key:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  z-index: calc(var(--z-base) + 2);
 }
