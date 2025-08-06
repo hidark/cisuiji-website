@@ -1,0 +1,101 @@
+.key {
+  position: relative;
+  border: 1px solid #000;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.white {
+  flex: 1;
+  min-width: 12px;
+  max-width: 50px;
+  height: 120px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+  color: #2c3e50;
+  z-index: 1;
+  border: 1px solid #dee2e6;
+}
+
+.white:hover {
+  background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+  transform: translateY(1px);
+}
+
+.black {
+  flex: 0.6;
+  min-width: 8px;
+  max-width: 32px;
+  height: 75px;
+  background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+  color: #ecf0f1;
+  margin: 0 -8px;
+  z-index: 2;
+  border: 1px solid #34495e;
+}
+
+.black:hover {
+  background: linear-gradient(180deg, #34495e 0%, #2c3e50 100%);
+  transform: translateY(1px);
+}
+
+.pressed {
+  background: linear-gradient(180deg, #3498db 0%, #2980b9 100%) !important;
+  color: white !important;
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.noteName {
+  font-size: clamp(6px, 1.5vw, 10px);
+  font-weight: 600;
+  opacity: 0.7;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.black .noteName {
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+/* 添加一些按键的特殊效果 */
+.key:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .white {
+    height: 100px;
+    min-width: 10px;
+    max-width: 40px;
+  }
+  
+  .black {
+    height: 65px;
+    min-width: 6px;
+    max-width: 26px;
+    margin: 0 -6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .white {
+    height: 80px;
+    min-width: 8px;
+    max-width: 30px;
+  }
+  
+  .black {
+    height: 50px;
+    min-width: 5px;
+    max-width: 20px;
+    margin: 0 -5px;
+  }
+}
