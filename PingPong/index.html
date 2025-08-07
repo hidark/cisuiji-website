@@ -8,6 +8,20 @@
 </head>
 <body>
     <div class="game-container">
+        <!-- 游戏模式选择 -->
+        <div class="mode-selector" id="modeSelector">
+            <h2>选择游戏模式</h2>
+            <button class="mode-btn" onclick="selectMode('single')">单人游戏</button>
+            <button class="mode-btn" onclick="selectMode('online')">在线对战</button>
+        </div>
+        
+        <!-- 在线游戏信息 -->
+        <div class="online-info" id="onlineInfo" style="display: none;">
+            <span id="connectionStatus" class="disconnected">未连接</span>
+            <span id="roomInfo">等待加入房间...</span>
+            <span id="latency">延迟: --ms</span>
+        </div>
+        
         <div class="score-board">
             <div class="score player-score">0</div>
             <div class="divider">:</div>
@@ -17,13 +31,22 @@
         <canvas id="gameCanvas"></canvas>
         
         <div class="game-info">
-            <div class="status-message">点击开始游戏</div>
+            <div class="status-message">选择游戏模式</div>
         </div>
         
-        <div class="controls">
+        <!-- 单人游戏控制 -->
+        <div class="controls" id="singleControls" style="display: none;">
             <button id="startBtn" class="btn">开始游戏</button>
             <button id="pauseBtn" class="btn" disabled>暂停</button>
             <button id="resetBtn" class="btn">重置</button>
+        </div>
+        
+        <!-- 在线游戏控制 -->
+        <div class="controls" id="onlineControls" style="display: none;">
+            <button id="connectBtn" class="btn" onclick="connectToServer()">连接服务器</button>
+            <button id="startOnlineBtn" class="btn" disabled onclick="startOnlineGame()">开始游戏</button>
+            <button id="reconnectBtn" class="btn" style="display: none;" onclick="connectToServer()">重新连接</button>
+            <button id="backBtn" class="btn" onclick="backToMenu()">返回菜单</button>
         </div>
         
         <div class="instructions">
@@ -53,5 +76,86 @@
     </div>
     
     <script src="game.js"></script>
+    <script src="multiplayer.js"></script>
+    <script>
+        let currentMode = null;
+        let currentGame = null;
+        
+        function selectMode(mode) {
+            currentMode = mode;
+            document.getElementById('modeSelector').style.display = 'none';
+            
+            if (mode === 'single') {
+                // 单人模式
+                document.getElementById('singleControls').style.display = 'flex';
+                document.getElementById('onlineControls').style.display = 'none';
+                document.getElementById('onlineInfo').style.display = 'none';
+                
+                if (currentGame && currentGame.cleanup) {
+                    currentGame.cleanup();
+                }
+                currentGame = new Game();
+                document.querySelector('.status-message').textContent = '点击开始游戏';
+                
+            } else if (mode === 'online') {
+                // 在线模式
+                document.getElementById('singleControls').style.display = 'none';
+                document.getElementById('onlineControls').style.display = 'flex';
+                document.getElementById('onlineInfo').style.display = 'flex';
+                
+                if (currentGame && currentGame.cleanup) {
+                    currentGame.cleanup();
+                }
+                currentGame = initMultiplayer();
+                document.querySelector('.status-message').textContent = '点击连接服务器';
+            }
+        }
+        
+        function connectToServer() {
+            if (currentGame && currentGame.connect) {
+                currentGame.connect();
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('reconnectBtn').style.display = 'none';
+            }
+        }
+        
+        function startOnlineGame() {
+            if (currentGame && currentGame.startGame) {
+                currentGame.startGame();
+            }
+        }
+        
+        function backToMenu() {
+            if (currentGame && currentGame.cleanup) {
+                currentGame.cleanup();
+            }
+            currentMode = null;
+            currentGame = null;
+            
+            // 重置UI
+            document.getElementById('modeSelector').style.display = 'block';
+            document.getElementById('singleControls').style.display = 'none';
+            document.getElementById('onlineControls').style.display = 'none';
+            document.getElementById('onlineInfo').style.display = 'none';
+            document.getElementById('connectBtn').disabled = false;
+            document.getElementById('startOnlineBtn').disabled = true;
+            document.querySelector('.status-message').textContent = '选择游戏模式';
+            document.querySelector('.player-score').textContent = '0';
+            document.querySelector('.ai-score').textContent = '0';
+            
+            // 清空画布
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // 页面卸载时清理
+        window.addEventListener('beforeunload', () => {
+            if (currentGame && currentGame.cleanup) {
+                currentGame.cleanup();
+            }
+        });
+    </script>
 </body>
 </html>

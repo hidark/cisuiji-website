@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Key } from '../Key/Key';
 import { generateFullKeyboard, generateResponsiveKeyboard, getFrequency, getKeyNote } from '../../utils/musicUtils';
 import { ChevronDownIcon } from '../Icons';
@@ -17,11 +17,13 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
   const keyboardWrapperRef = useRef<HTMLDivElement>(null);
   const keyboardRef = useRef<HTMLDivElement>(null);
   
-  // 根据屏幕宽度生成适当数量的键
-  const allKeys = screenWidth >= 768 ? generateFullKeyboard() : generateResponsiveKeyboard(screenWidth);
+  // 根据屏幕宽度生成适当数量的键 - 使用useMemo优化
+  const allKeys = useMemo(() => {
+    return screenWidth >= 768 ? generateFullKeyboard() : generateResponsiveKeyboard(screenWidth);
+  }, [screenWidth]);
 
   useEffect(() => {
-    setAudioContext(new (window.AudioContext || (window as any).webkitAudioContext)());
+    setAudioContext(new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)());
   }, []);
 
   // 监听窗口大小变化
@@ -66,8 +68,8 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
     };
   }, [allKeys]);
 
-  // 播放音符
-  const playNote = (note: string) => {
+  // 播放音符 - 使用useCallback优化
+  const playNote = useCallback((note: string) => {
     if (!audioContext) return;
 
     const oscillator = audioContext.createOscillator();
@@ -85,29 +87,10 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
 
     oscillator.start();
     oscillator.stop(audioContext.currentTime + 1.5);
-  };
+  }, [audioContext]);
 
-  // 键盘事件处理
-  const handleKeyDown = (event: KeyboardEvent) => {
-    const note = getKeyNote(event.key, event.altKey, event.shiftKey);
-    if (note && !pressedKeys.includes(note)) {
-      setPressedKeys(prev => [...prev, note]);
-      playNote(note);
-      
-      // 自动滚动到按下的键
-      scrollToNote(note);
-    }
-  };
-
-  const handleKeyUp = (event: KeyboardEvent) => {
-    const note = getKeyNote(event.key, event.altKey, event.shiftKey);
-    if (note) {
-      setPressedKeys(prev => prev.filter(k => k !== note));
-    }
-  };
-
-  // 滚动到指定音符
-  const scrollToNote = (note: string) => {
+  // 滚动到指定音符 - 使用useCallback优化
+  const scrollToNote = useCallback((note: string) => {
     const wrapper = keyboardWrapperRef.current;
     const keyboard = keyboardRef.current;
     if (!wrapper || !keyboard) return;
@@ -132,7 +115,26 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
         break;
       }
     }
-  };
+  }, []);
+
+  // 键盘事件处理 - 使用useCallback优化
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    const note = getKeyNote(event.key, event.altKey, event.shiftKey);
+    if (note && !pressedKeys.includes(note)) {
+      setPressedKeys(prev => [...prev, note]);
+      playNote(note);
+      
+      // 自动滚动到按下的键
+      scrollToNote(note);
+    }
+  }, [pressedKeys, playNote, scrollToNote]);
+
+  const handleKeyUp = useCallback((event: KeyboardEvent) => {
+    const note = getKeyNote(event.key, event.altKey, event.shiftKey);
+    if (note) {
+      setPressedKeys(prev => prev.filter(k => k !== note));
+    }
+  }, []);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -141,16 +143,16 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [pressedKeys, audioContext]);
+  }, [handleKeyDown, handleKeyUp]);
 
-  // 点击播放音符
-  const handleKeyClick = (note: string) => {
+  // 点击播放音符 - 使用useCallback优化
+  const handleKeyClick = useCallback((note: string) => {
     playNote(note);
     setPressedKeys(prev => [...prev, note]);
     setTimeout(() => {
       setPressedKeys(prev => prev.filter(k => k !== note));
     }, 200);
-  };
+  }, [playNote]);
 
   // 初始滚动到中间位置（C4附近）
   useEffect(() => {

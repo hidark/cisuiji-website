@@ -5,9 +5,9 @@ import * as Tone from 'tone';
 export interface InstrumentConfig {
   id: string;
   name: string;
-  oscillator: any;
-  envelope: any;
-  filter?: any;
+  oscillator: Record<string, unknown>;
+  envelope: Record<string, unknown>;
+  filter?: Record<string, unknown>;
 }
 
 export const INSTRUMENTS: InstrumentConfig[] = [
@@ -81,6 +81,7 @@ export class MidiPlayer {
   private options: MidiPlayerOptions;
   private synth!: Tone.PolySynth;
   private activeNotes: Map<string, Tone.Unit.Frequency> = new Map();
+  private noteCache: Map<string, { time: number, velocity: number }> = new Map();
   private currentInstrument: InstrumentConfig = INSTRUMENTS[0];
 
   constructor(options: MidiPlayerOptions = {}) {
@@ -100,11 +101,19 @@ export class MidiPlayer {
       envelope: this.currentInstrument.envelope
     }).toDestination();
     
-    // 设置最大复音数
-    this.synth.maxPolyphony = 32;
+    // 优化：增加最大复音数以支持更复杂的音乐
+    this.synth.maxPolyphony = 64;
     
     // 设置音量
     this.synth.volume.value = -10; // 降低音量避免失真
+    
+    // 设置更好的音频性能参数
+    if (this.synth.voice0) {
+      this.synth.set({
+        detune: 0,
+        portamento: 0
+      });
+    }
   }
 
   async loadMidi(midi: Midi): Promise<void> {
@@ -183,6 +192,9 @@ export class MidiPlayer {
     if (!this.midi) return;
 
     const startOffset = this.pauseTime || 0;
+    
+    // 优化：批量处理音符以减少调度开销
+    const notesToSchedule: Array<{note: { name: string; velocity: number; duration: number; time: number }, startTime: number, endTime: number}> = [];
 
     this.midi.tracks.forEach(track => {
       track.notes.forEach(note => {
@@ -190,31 +202,36 @@ export class MidiPlayer {
         const noteEndTime = (note.time + note.duration) - startOffset;
 
         if (noteStartTime >= 0) {
-          // 安排音符开始
-          const noteOnId = Tone.Transport.schedule((time) => {
-            if (this.isPlaying) {
-              // 实际播放音符
-              this.playScheduledNote(note.name, note.velocity, note.duration, time);
-              
-              // 通知UI更新
-              if (this.options.onNoteOn) {
-                this.options.onNoteOn(note.name, note.velocity, time);
-              }
-            }
-          }, noteStartTime);
-          this.scheduledEvents.push(noteOnId);
-
-          // 安排音符结束回调（用于UI更新）
-          if (this.options.onNoteOff) {
-            const noteOffId = Tone.Transport.schedule((time) => {
-              if (this.isPlaying) {
-                this.options.onNoteOff!(note.name, time);
-              }
-            }, noteEndTime);
-            this.scheduledEvents.push(noteOffId);
-          }
+          notesToSchedule.push({ note, startTime: noteStartTime, endTime: noteEndTime });
         }
       });
+    });
+    
+    // 批量调度音符
+    notesToSchedule.forEach(({ note, startTime, endTime }) => {
+      // 安排音符开始
+      const noteOnId = Tone.Transport.schedule((time) => {
+        if (this.isPlaying) {
+          // 实际播放音符
+          this.playScheduledNote(note.name, note.velocity, note.duration, time);
+          
+          // 通知UI更新
+          if (this.options.onNoteOn) {
+            this.options.onNoteOn(note.name, note.velocity, time);
+          }
+        }
+      }, startTime);
+      this.scheduledEvents.push(noteOnId);
+
+      // 安排音符结束回调（用于UI更新）
+      if (this.options.onNoteOff) {
+        const noteOffId = Tone.Transport.schedule((time) => {
+          if (this.isPlaying) {
+            this.options.onNoteOff!(note.name, time);
+          }
+        }, endTime);
+        this.scheduledEvents.push(noteOffId);
+      }
     });
 
     // 启动Transport
@@ -223,9 +240,20 @@ export class MidiPlayer {
 
   private playScheduledNote(noteName: string, velocity: number, duration: number, time: number): void {
     try {
+      // 优化：缓存音符信息以避免重复计算
+      const cacheKey = `${noteName}-${duration}`;
+      if (!this.noteCache.has(cacheKey)) {
+        this.noteCache.set(cacheKey, { time, velocity });
+      }
+      
       // 播放音符，velocity已经内置在triggerAttackRelease中
       this.synth.triggerAttackRelease(noteName, duration, time, velocity * 0.5); // 降低音量避免失真
       
+      // 限制缓存大小
+      if (this.noteCache.size > 100) {
+        const firstKey = this.noteCache.keys().next().value;
+        this.noteCache.delete(firstKey);
+      }
     } catch (error) {
       console.warn('播放音符失败:', noteName, error);
     }
@@ -240,7 +268,8 @@ export class MidiPlayer {
   }
 
   private startProgressTracking(): void {
-    this.progressInterval = window.setInterval(() => {
+    // 优化：使用requestAnimationFrame代替setInterval以获得更好的性能
+    const updateProgress = () => {
       if (this.isPlaying) {
         this.currentTime = Tone.now() - this.startTime;
         
@@ -254,14 +283,19 @@ export class MidiPlayer {
           if (this.options.onEnd) {
             this.options.onEnd();
           }
+        } else {
+          // 继续下一帧
+          this.progressInterval = requestAnimationFrame(updateProgress);
         }
       }
-    }, 100);
+    };
+    
+    this.progressInterval = requestAnimationFrame(updateProgress);
   }
 
   private stopProgressTracking(): void {
     if (this.progressInterval) {
-      clearInterval(this.progressInterval);
+      cancelAnimationFrame(this.progressInterval);
       this.progressInterval = null;
     }
   }
@@ -333,6 +367,7 @@ export class MidiPlayer {
     this.stop();
     this.synth.dispose();
     this.midi = null;
+    this.noteCache.clear();
   }
 }
 

@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { BasicPitchAnalyzer } from '../../services/basicPitchAnalyzer';
 import type { PitchNote } from '../../services/basicPitchAnalyzer';
 import { UploadIcon, PlayIcon, LoadingIcon, MusicIcon, ChevronDownIcon, ChevronUpIcon } from '../Icons';
+import { errorHandler } from '../../services/errorHandler';
+import { AUDIO_CONFIG, BASIC_PITCH_CONFIG, WAVEFORM_CONFIG } from '../../config/constants';
 import WaveSurfer from 'wavesurfer.js';
 import styles from './AudioAnalyzer.module.css';
 
@@ -33,18 +35,38 @@ export function AudioAnalyzer({ onNotesExtracted, onPlay, onStop, isPlaying }: A
   const waveformRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const analyzerRef = useRef<BasicPitchAnalyzer | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Dispose WaveSurfer instance
+      if (wavesurferRef.current) {
+        wavesurferRef.current.destroy();
+        wavesurferRef.current = null;
+      }
+      
+      // Dispose BasicPitchAnalyzer instance
+      if (analyzerRef.current) {
+        analyzerRef.current.dispose();
+        analyzerRef.current = null;
+      }
+      
+      // Revoke object URL if exists
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+    };
+  }, []);
   
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     
     // 验证文件类型
-    const validTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/wave', 'audio/x-wav', 'audio/x-wave'];
-    const validExtensions = /\.(mp3|wav|wave)$/i;
-    
-    // Check if file has a valid type or extension
-    const hasValidType = file.type && validTypes.includes(file.type.toLowerCase());
-    const hasValidExtension = file.name.match(validExtensions);
+    const hasValidType = file.type && AUDIO_CONFIG.SUPPORTED_FORMATS.includes(file.type.toLowerCase());
+    const hasValidExtension = file.name.match(AUDIO_CONFIG.VALID_EXTENSIONS);
     
     if (!hasValidType && !hasValidExtension) {
       setError('请选择 MP3 或 WAV 格式的音频文件');
@@ -68,20 +90,34 @@ export function AudioAnalyzer({ onNotesExtracted, onPlay, onStop, isPlaying }: A
       }
       
       // 加载和显示波形
-      if (waveformRef.current && !wavesurferRef.current) {
+      if (waveformRef.current) {
+        // Dispose old instance if exists
+        if (wavesurferRef.current) {
+          wavesurferRef.current.destroy();
+          wavesurferRef.current = null;
+        }
+        
+        // Create new instance
         wavesurferRef.current = WaveSurfer.create({
           container: waveformRef.current,
-          waveColor: '#667eea',
-          progressColor: '#9333ea',
-          cursorColor: '#ec4899',
-          height: 80,
-          normalize: true,
-          backend: 'WebAudio'
+          waveColor: WAVEFORM_CONFIG.WAVE_COLOR,
+          progressColor: WAVEFORM_CONFIG.PROGRESS_COLOR,
+          cursorColor: WAVEFORM_CONFIG.CURSOR_COLOR,
+          height: WAVEFORM_CONFIG.HEIGHT,
+          normalize: WAVEFORM_CONFIG.NORMALIZE,
+          backend: WAVEFORM_CONFIG.BACKEND
         });
+      }
+      
+      // 清理旧的URL
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
       }
       
       // 加载音频文件到波形显示
       const url = URL.createObjectURL(file);
+      audioUrlRef.current = url;
+      
       if (wavesurferRef.current) {
         await wavesurferRef.current.load(url);
       }
@@ -89,10 +125,10 @@ export function AudioAnalyzer({ onNotesExtracted, onPlay, onStop, isPlaying }: A
       // 使用Basic Pitch分析音频
       setProgress(30);
       const result = await analyzerRef.current.analyzeAudioFile(file, {
-        onsetThreshold: 0.5,
-        frameThreshold: 0.3,
-        minNoteLength: 50,
-        inferPitchBends: true
+        onsetThreshold: BASIC_PITCH_CONFIG.DEFAULT_ONSET_THRESHOLD,
+        frameThreshold: BASIC_PITCH_CONFIG.DEFAULT_FRAME_THRESHOLD,
+        minNoteLength: BASIC_PITCH_CONFIG.MIN_NOTE_LENGTH,
+        inferPitchBends: BASIC_PITCH_CONFIG.INFER_PITCH_BENDS
       }, (percent: number) => {
         // 进度从30%到90%
         const adjustedProgress = 30 + (percent * 0.6);
@@ -122,11 +158,9 @@ export function AudioAnalyzer({ onNotesExtracted, onPlay, onStop, isPlaying }: A
       
       setProgress(100);
       
-      // 清理URL
-      URL.revokeObjectURL(url);
-      
     } catch (err) {
       console.error('音频分析错误:', err);
+      errorHandler.handleAnalysisError(err as Error);
       setError('音频分析失败，请尝试其他文件');
       setAnalysisResult(null);
     } finally {

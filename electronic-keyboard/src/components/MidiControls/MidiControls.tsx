@@ -1,16 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Midi } from '@tonejs/midi';
-import { 
-  PlayIcon, 
-  PauseIcon, 
-  StopIcon, 
-  VolumeIcon, 
-  UploadIcon, 
-  ChevronUpIcon, 
-  ChevronDownIcon,
-  LoadingIcon,
-  MusicIcon 
-} from '../Icons';
+import { ChevronUpIcon, ChevronDownIcon, MusicIcon, PauseIcon } from '../Icons';
+import { FileUploader } from './FileUploader';
+import { PlaybackControls } from './PlaybackControls';
+import { VolumeControl } from './VolumeControl';
+import { ProgressBar } from './ProgressBar';
 import styles from './MidiControls.module.css';
 
 interface MidiControlsProps {
@@ -42,7 +36,6 @@ export function MidiControls({
   const [volume, setVolume] = useState(0.5);
   const [isMinimized, setIsMinimized] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -66,16 +59,15 @@ export function MidiControls({
     }
   };
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(event.target.value);
+  const handleVolumeChange = (newVolume: number) => {
     setVolume(newVolume);
     if (onVolumeChange) {
       onVolumeChange(newVolume);
     }
+  };
+
+  const toggleMinimized = () => {
+    setIsMinimized(!isMinimized);
   };
 
   const formatTime = (seconds: number): string => {
@@ -84,18 +76,12 @@ export function MidiControls({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const toggleMinimized = () => {
-    setIsMinimized(!isMinimized);
-  };
-
   // 播放时自动最小化
   useEffect(() => {
     if (isPlaying && !isPaused) {
       setIsMinimized(true);
     }
   }, [isPlaying, isPaused]);
-
-  const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div 
@@ -138,132 +124,46 @@ export function MidiControls({
       {!isMinimized && (
         <div className={styles.content}>
           {/* 文件上传区域 */}
-          <div className={styles.uploadSection}>
-            <input
-              type="file"
-              accept=".mid,.midi"
-              onChange={handleFileSelect}
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-              aria-label="选择MIDI文件"
-              id="midi-file-input"
-            />
-            
-            <button 
-              onClick={handleUploadClick}
-              className={styles.uploadButton}
-              disabled={isLoading}
-              aria-label={selectedFile ? '更换MIDI文件' : '选择MIDI文件'}
-              aria-busy={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <LoadingIcon size={20} />
-                  <span className={styles.loading}>解析中...</span>
-                </>
-              ) : (
-                <>
-                  <UploadIcon size={20} />
-                  <span>{selectedFile ? '更换' : '选择'} MIDI 文件</span>
-                </>
-              )}
-            </button>
+          <FileUploader
+            onFileSelect={handleFileSelect}
+            selectedFile={selectedFile}
+            isLoading={isLoading}
+          />
 
-            {error && (
-              <div className={styles.errorMessage} role="alert">
-                <span>{error}</span>
-              </div>
-            )}
+          {error && (
+            <div className={styles.errorMessage} role="alert">
+              <span>{error}</span>
+            </div>
+          )}
 
-            {selectedFile && midiData && (
-              <div className={styles.midiInfo} role="contentinfo">
-                <span>时长: {formatTime(midiData.duration)}</span>
-                <span>音轨: {midiData.tracks.length}</span>
-                <span>节拍: {midiData.header.tempos[0]?.bpm || 120} BPM</span>
-              </div>
-            )}
-          </div>
+          {selectedFile && midiData && (
+            <div className={styles.midiInfo} role="contentinfo">
+              <span>时长: {formatTime(midiData.duration)}</span>
+              <span>音轨: {midiData.tracks.length}</span>
+              <span>节拍: {midiData.header.tempos[0]?.bpm || 120} BPM</span>
+            </div>
+          )}
 
           {/* 播放控制 */}
           {midiData && (
             <div className={styles.playbackControls} role="group" aria-label="播放控制">
-              <div className={styles.controlButtons}>
-                <button
-                  onClick={onPlay}
-                  disabled={isPlaying && !isPaused}
-                  className={`${styles.controlButton} ${styles.playButton}`}
-                  aria-label="播放"
-                  aria-pressed={isPlaying && !isPaused}
-                >
-                  {isPlaying && !isPaused ? (
-                    <LoadingIcon size={20} />
-                  ) : (
-                    <PlayIcon size={20} />
-                  )}
-                </button>
+              <PlaybackControls
+                onPlay={onPlay}
+                onPause={onPause}
+                onStop={onStop}
+                isPlaying={isPlaying}
+                isPaused={isPaused}
+              />
 
-                <button
-                  onClick={onPause}
-                  disabled={!isPlaying}
-                  className={`${styles.controlButton} ${styles.pauseButton}`}
-                  aria-label="暂停"
-                  aria-pressed={isPaused}
-                >
-                  <PauseIcon size={20} />
-                </button>
+              <VolumeControl
+                volume={volume}
+                onVolumeChange={handleVolumeChange}
+              />
 
-                <button
-                  onClick={onStop}
-                  disabled={!isPlaying && !isPaused}
-                  className={`${styles.controlButton} ${styles.stopButton}`}
-                  aria-label="停止"
-                >
-                  <StopIcon size={20} />
-                </button>
-              </div>
-
-              {/* 音量控制 */}
-              <div className={styles.volumeControl} role="group" aria-label="音量控制">
-                <VolumeIcon size={20} className={styles.volumeLabel} />
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={volume}
-                  onChange={handleVolumeChange}
-                  className={styles.volumeSlider}
-                  aria-label="音量"
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={Math.round(volume * 100)}
-                />
-                <span className={styles.volumeValue} aria-live="off">
-                  {Math.round(volume * 100)}%
-                </span>
-              </div>
-
-              {/* 进度条 */}
-              <div className={styles.progressSection} role="group" aria-label="播放进度">
-                <div className={styles.timeDisplay}>
-                  <span aria-label="当前时间">{formatTime(currentTime)}</span>
-                  <span aria-label="总时长">{formatTime(duration)}</span>
-                </div>
-                
-                <div 
-                  className={styles.progressBar}
-                  role="progressbar"
-                  aria-label="播放进度"
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={Math.round(progressPercentage)}
-                >
-                  <div 
-                    className={styles.progressFill}
-                    style={{ width: `${progressPercentage}%` }}
-                  />
-                </div>
-              </div>
+              <ProgressBar
+                currentTime={currentTime}
+                duration={duration}
+              />
             </div>
           )}
 

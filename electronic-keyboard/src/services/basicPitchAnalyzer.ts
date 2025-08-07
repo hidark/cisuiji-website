@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
-import { BasicPitch, noteFramesToTime, addPitchBendsToNoteEvents } from '@spotify/basic-pitch';
+import { BasicPitch } from '@spotify/basic-pitch';
+import { AUDIO_CONFIG, BASIC_PITCH_CONFIG, PITCH_RANGES, NOTE_NAMES, MIDI_CONFIG } from '../config/constants';
 
 // 定义NoteEventTime类型（从Basic Pitch类型定义中复制）
 interface NoteEventTime {
@@ -34,7 +35,7 @@ export class BasicPitchAnalyzer {
   private isModelLoaded = false;
 
   constructor() {
-    this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
   }
 
   async initialize(): Promise<void> {
@@ -46,7 +47,7 @@ export class BasicPitchAnalyzer {
       console.log('TensorFlow.js backend:', tf.getBackend());
       
       // 加载Basic Pitch模型
-      this.model = new BasicPitch('https://unpkg.com/@spotify/basic-pitch@1.0.1/model/model.json');
+      this.model = new BasicPitch(BASIC_PITCH_CONFIG.MODEL_URL);
       this.isModelLoaded = true;
       console.log('Basic Pitch model loaded successfully');
     } catch (error) {
@@ -73,7 +74,7 @@ export class BasicPitchAnalyzer {
     console.log(`原始音频: 时长=${audioBuffer.duration}秒, 采样率=${audioBuffer.sampleRate}Hz, 声道=${audioBuffer.numberOfChannels}`);
     
     // Basic Pitch需要22050Hz采样率，重采样音频
-    const resampledBuffer = await this.resampleAudioBuffer(audioBuffer, 22050);
+    const resampledBuffer = await this.resampleAudioBuffer(audioBuffer, AUDIO_CONFIG.SAMPLE_RATE);
     console.log(`重采样后: 时长=${resampledBuffer.duration}秒, 采样率=${resampledBuffer.sampleRate}Hz, 声道=${resampledBuffer.numberOfChannels}`);
     
     // 分析音频
@@ -94,13 +95,13 @@ export class BasicPitchAnalyzer {
 
     // 设置默认参数
     const {
-      onsetThreshold = 0.5,
-      frameThreshold = 0.3,
-      minNoteLength = 50, // 最小音符长度（毫秒）
-      inferPitchBends = true,
-      melodiaTrick = true,
-      minPitch = 24, // MIDI C1
-      maxPitch = 96, // MIDI C7
+      onsetThreshold = BASIC_PITCH_CONFIG.DEFAULT_ONSET_THRESHOLD,
+      frameThreshold = BASIC_PITCH_CONFIG.DEFAULT_FRAME_THRESHOLD,
+      minNoteLength = BASIC_PITCH_CONFIG.MIN_NOTE_LENGTH, // 最小音符长度（毫秒）
+      // inferPitchBends = true,
+      // melodiaTrick = true,
+      // minPitch = 24, // MIDI C1
+      // maxPitch = 96, // MIDI C7
     } = config;
 
     // 使用Basic Pitch进行分析
@@ -143,7 +144,7 @@ export class BasicPitchAnalyzer {
             onsetThreshold,
             frameThreshold,
             minNoteLength / 1000,
-            melodiaTrick
+            // melodiaTrick
           );
           
           console.log(`提取到 ${noteEvents.length} 个音符`);
@@ -244,9 +245,9 @@ export class BasicPitchAnalyzer {
     const harmonyNotes: PitchNote[] = [];
 
     notes.forEach(note => {
-      if (note.pitch < 48) { // MIDI C3以下 - 贝斯音域
+      if (note.pitch <= PITCH_RANGES.BASS.MAX) { // 贝斯音域
         bassNotes.push(note);
-      } else if (note.pitch > 72) { // MIDI C5以上 - 主旋律音域
+      } else if (note.pitch >= PITCH_RANGES.MELODY.MIN) { // 主旋律音域
         melodyNotes.push(note);
       } else { // 中间音域 - 和声
         harmonyNotes.push(note);
@@ -281,14 +282,13 @@ export class BasicPitchAnalyzer {
 
   // 将MIDI音高转换为音符名称
   midiToNoteName(midiPitch: number): string {
-    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const octave = Math.floor(midiPitch / 12) - 1;
     const noteIndex = midiPitch % 12;
-    return `${noteNames[noteIndex]}${octave}`;
+    return `${NOTE_NAMES[noteIndex]}${octave}`;
   }
 
   // 量化音符到最近的节拍
-  quantizeNotes(notes: PitchNote[], bpm: number = 120, subdivision: number = 16): PitchNote[] {
+  quantizeNotes(notes: PitchNote[], bpm: number = MIDI_CONFIG.DEFAULT_BPM, subdivision: number = MIDI_CONFIG.QUANTIZE_SUBDIVISION): PitchNote[] {
     const beatDuration = 60 / bpm; // 一拍的秒数
     const quantumDuration = beatDuration / (subdivision / 4); // 量化单位的秒数
 
@@ -361,7 +361,7 @@ export class BasicPitchAnalyzer {
   }
 
   // 导出为MIDI格式数据
-  exportToMidiData(notes: PitchNote[]): any {
+  exportToMidiData(notes: PitchNote[]): unknown {
     const midiTracks = notes.map(note => ({
       pitch: note.pitch,
       startTime: note.startTime,
@@ -384,7 +384,7 @@ export class BasicPitchAnalyzer {
     onsetThreshold: number,
     frameThreshold: number,
     minNoteLength: number,
-    melodiaTrick: boolean
+    // melodiaTrick: boolean
   ): NoteEventTime[] {
     const notes: NoteEventTime[] = [];
     const hopSize = 256; // Basic Pitch使用256作为FFT_HOP
@@ -456,10 +456,22 @@ export class BasicPitchAnalyzer {
   }
 
   dispose(): void {
-    if (this.audioContext.state !== 'closed') {
-      this.audioContext.close();
+    // Dispose TensorFlow model and clear memory
+    if (this.model) {
+      this.model = null;
+      this.isModelLoaded = false;
     }
-    this.model = null;
-    this.isModelLoaded = false;
+    
+    // Close audio context if it's not already closed
+    if (this.audioContext && this.audioContext.state !== 'closed') {
+      this.audioContext.close().catch(err => {
+        console.error('Error closing audio context:', err);
+      });
+    }
+    
+    // Clear any tensors from memory
+    tf.disposeVariables();
+    
+    console.log('BasicPitchAnalyzer disposed');
   }
 }

@@ -239,3 +239,104 @@ body {
         border: 2px solid #ffffff;
     }
 }
+
+/* 游戏模式选择器 */
+.mode-selector {
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #00ccff;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.mode-selector h2 {
+    color: #00ccff;
+    margin-bottom: 20px;
+    font-size: 24px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.mode-btn {
+    display: inline-block;
+    margin: 10px;
+    padding: 15px 40px;
+    font-size: 18px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #00ccff 0%, #0088cc 100%);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 180px;
+}
+
+.mode-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 200, 255, 0.5);
+}
+
+.mode-btn:active {
+    transform: translateY(0);
+}
+
+/* 在线游戏信息 */
+.online-info {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: #ccc;
+}
+
+.online-info span {
+    padding: 5px 15px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+    border: 1px solid #333;
+}
+
+#connectionStatus {
+    font-weight: bold;
+}
+
+#connectionStatus.connected {
+    color: #00ff00;
+    border-color: #00ff00;
+}
+
+#connectionStatus.disconnected {
+    color: #ff4444;
+    border-color: #ff4444;
+}
+
+#latency {
+    color: #ffcc00;
+}
+
+#roomInfo {
+    color: #00ccff;
+}
+
+/* 返回菜单按钮 */
+#backBtn {
+    background: linear-gradient(135deg, #ff6600 0%, #cc4400 100%);
+}
+
+#backBtn:hover:not(:disabled) {
+    box-shadow: 0 5px 15px rgba(255, 102, 0, 0.4);
+}
+
+/* 重连按钮 */
+#reconnectBtn {
+    background: linear-gradient(135deg, #ffcc00 0%, #ff9900 100%);
+}
+
+#reconnectBtn:hover:not(:disabled) {
+    box-shadow: 0 5px 15px rgba(255, 204, 0, 0.4);
+}

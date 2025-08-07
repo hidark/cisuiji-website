@@ -593,20 +593,4 @@ class Game {
 }
 
 // 游戏实例管理
-let gameInstance = null;
-
-window.addEventListener('DOMContentLoaded', () => {
-    try {
-        gameInstance = new Game();
-    } catch (e) {
-        console.error('Failed to initialize game:', e);
-        document.querySelector('.status-message').textContent = '游戏初始化失败';
-    }
-});
-
-// 页面卸载时清理资源
-window.addEventListener('beforeunload', () => {
-    if (gameInstance && gameInstance.cleanup) {
-        gameInstance.cleanup();
-    }
-});
+// 现在游戏实例由index.html中的模式选择逻辑管理

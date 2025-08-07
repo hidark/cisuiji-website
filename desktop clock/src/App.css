@@ -1,0 +1,247 @@
+:root {
+  --primary-bg: rgba(26, 26, 46, 0.95);
+  --secondary-bg: rgba(255, 255, 255, 0.05);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --base-font-size: 14px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: transparent;
+  overflow: hidden;
+  font-size: var(--base-font-size);
+}
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px var(--shadow-color);
+  position: relative;
+}
+
+.app::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--primary-bg);
+  backdrop-filter: blur(20px);
+  z-index: 1;
+}
+
+.app-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: var(--secondary-bg);
+  border-bottom: 1px solid var(--border-color);
+  -webkit-app-region: drag;
+}
+
+.app-title {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.app-controls {
+  -webkit-app-region: no-drag;
+}
+
+.app-controls .ant-btn {
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.app-controls .ant-btn:hover {
+  color: var(--text-primary);
+  background: var(--secondary-bg);
+}
+
+.app-controls .ant-btn.pinned {
+  color: #1890ff;
+}
+
+.app-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  -webkit-app-region: no-drag;
+}
+
+.app-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-content::-webkit-scrollbar-track {
+  background: var(--secondary-bg);
+  border-radius: 3px;
+}
+
+.app-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.app-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.app-tabs .ant-tabs-nav {
+  background: transparent;
+  margin-bottom: 10px;
+}
+
+.app-tabs .ant-tabs-tab {
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  transition: all 0.3s ease;
+}
+
+.app-tabs .ant-tabs-tab:hover {
+  color: var(--text-primary);
+}
+
+.app-tabs .ant-tabs-tab-active {
+  color: var(--text-primary);
+  background: var(--secondary-bg);
+  border-radius: 6px;
+}
+
+.app-tabs .ant-tabs-ink-bar {
+  display: none;
+}
+
+.app-tabs .ant-tabs-content {
+  color: var(--text-primary);
+}
+
+.ant-modal {
+  color: var(--text-primary);
+}
+
+.ant-modal-content {
+  background: var(--primary-bg);
+  border: 1px solid var(--border-color);
+}
+
+.ant-modal-header {
+  background: transparent;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ant-modal-title {
+  color: var(--text-primary);
+}
+
+.ant-modal-close {
+  color: var(--text-secondary);
+}
+
+.ant-modal-close:hover {
+  color: var(--text-primary);
+}
+
+.ant-input,
+.ant-select-selector,
+.ant-picker {
+  background: var(--secondary-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.ant-select-arrow,
+.ant-picker-suffix {
+  color: var(--text-secondary);
+}
+
+.ant-btn-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.ant-btn-primary:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.ant-list-item {
+  border: none !important;
+  color: var(--text-primary);
+}
+
+.ant-list-item-meta-title {
+  color: var(--text-primary);
+}
+
+.ant-list-item-meta-description {
+  color: var(--text-secondary);
+}
+
+.ant-tag {
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+}
+
+.ant-switch {
+  background: var(--secondary-bg);
+}
+
+.ant-switch-checked {
+  background: #1890ff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.app {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@media (max-width: 400px) {
+  .app {
+    border-radius: 0;
+  }
+  
+  .app-content {
+    padding: 5px;
+  }
+}
