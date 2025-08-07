@@ -4,7 +4,8 @@
       "Bash(start index.html)",
       "Bash(node:*)",
       "WebFetch(domain:docs.anthropic.com)",
-      "Bash(ipconfig:*)"
+      "Bash(ipconfig:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": []
   }

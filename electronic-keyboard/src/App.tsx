@@ -2,6 +2,7 @@ import { useEffect, useCallback, lazy, Suspense } from 'react';
 import { Midi } from '@tonejs/midi';
 import { Keyboard } from './components/Keyboard/Keyboard';
 import { UnifiedFileUploader } from './components/UnifiedFileUploader';
+import { HandVisualization } from './components/HandVisualization';
 import { ErrorNotification } from './components/ErrorNotification/ErrorNotification';
 import { LoadingSpinner } from './components/LoadingSpinner/LoadingSpinner';
 import { Toast } from './components/Toast/Toast';
@@ -22,6 +23,7 @@ function App() {
     isPlayingExtractedNotes,
     extractedNotes,
     midiData,
+    fingeringAssignments,
     isLoading,
     loadingMessage,
     toastMessages,
@@ -122,7 +124,23 @@ function App() {
         </section>
 
         <section className="keyboard-section">
-          <Keyboard activeNotes={activeNotes} />
+          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            {/* 键盘 */}
+            <Keyboard 
+              activeNotes={activeNotes} 
+              fingeringAssignments={fingeringAssignments}
+              currentTime={currentTime}
+            />
+            
+            {/* 手部可视化 - 覆盖在键盘上方 */}
+            {fingeringAssignments.length > 0 && (
+              <HandVisualization 
+                assignments={fingeringAssignments}
+                currentTime={currentTime}
+                isPlaying={isPlaying || isPlayingExtractedNotes}
+              />
+            )}
+          </div>
         </section>
         
         {/* 音色选择器 - 懒加载 */}

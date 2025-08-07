@@ -120,11 +120,14 @@
   left: var(--spacing-md);
   right: var(--spacing-md);
   width: calc(100% - var(--spacing-xl));
-  height: clamp(100px, 20vh, 180px);
+  height: clamp(300px, 40vh, 400px);
   overflow: visible;
   background: transparent;
   z-index: var(--z-sticky);
   transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
 }
 
 /* 改进的响应式设计 */
@@ -145,7 +148,7 @@
 /* 桌面 */
 @media (max-width: 1024px) {
   .keyboard-section {
-    height: clamp(120px, 18vh, 160px);
+    height: clamp(250px, 35vh, 350px);
     bottom: var(--spacing-md);
   }
 }
@@ -162,7 +165,7 @@
   }
   
   .keyboard-section {
-    height: clamp(100px, 16vh, 140px);
+    height: clamp(200px, 30vh, 300px);
     left: var(--spacing-sm);
     right: var(--spacing-sm);
     width: calc(100% - var(--spacing-md));
@@ -181,7 +184,7 @@
   }
   
   .keyboard-section {
-    height: clamp(80px, 15vh, 120px);
+    height: clamp(180px, 25vh, 250px);
     left: var(--spacing-xs);
     right: var(--spacing-xs);
     width: calc(100% - var(--spacing-sm));
@@ -199,7 +202,7 @@
   }
   
   .keyboard-section {
-    height: clamp(70px, 14vh, 100px);
+    height: clamp(160px, 22vh, 220px);
     left: 0;
     right: 0;
     width: 100%;

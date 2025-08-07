@@ -328,3 +328,163 @@
     z-index: -1;
   }
 }
+
+/* 指法指示器样式 */
+.fingeringIndicator {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.fingerNumber {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 215, 0, 0.95);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid white;
+}
+
+.handIndicator {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* 左手样式 */
+.withFingering.leftHand .fingeringIndicator {
+  animation: leftHandPulse 2s ease-in-out infinite;
+}
+
+.leftHand .fingerNumber {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  border-color: #4CAF50;
+}
+
+.leftHand .handIndicator {
+  background: #4CAF50;
+}
+
+/* 右手样式 */
+.withFingering.rightHand .fingeringIndicator {
+  animation: rightHandPulse 2s ease-in-out infinite;
+}
+
+.rightHand .fingerNumber {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  border-color: #2196F3;
+}
+
+.rightHand .handIndicator {
+  background: #2196F3;
+}
+
+@keyframes leftHandPulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.1);
+  }
+}
+
+@keyframes rightHandPulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.1);
+  }
+}
+
+/* 黑键上的指法指示器调整 */
+.black .fingeringIndicator {
+  top: 3px;
+}
+
+.black .fingerNumber {
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+}
+
+.black .handIndicator {
+  font-size: 8px;
+  padding: 0 3px;
+}
+
+/* 当键被按下时的指法指示器 */
+.pressed .fingeringIndicator .fingerNumber {
+  background: white;
+  color: var(--color-primary);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+}
+
+.pressed .fingeringIndicator .handIndicator {
+  background: white;
+  color: var(--color-primary);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .fingerNumber {
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+  }
+  
+  .handIndicator {
+    font-size: 8px;
+  }
+  
+  .black .fingerNumber {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .fingerNumber {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+  }
+  
+  .handIndicator {
+    font-size: 7px;
+    padding: 0 2px;
+  }
+  
+  .black .fingeringIndicator {
+    display: none; /* 小屏幕上隐藏黑键的指法指示 */
+  }
+}

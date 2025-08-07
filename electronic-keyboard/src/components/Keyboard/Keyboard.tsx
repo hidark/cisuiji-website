@@ -2,13 +2,21 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Key } from '../Key/Key';
 import { generateFullKeyboard, generateResponsiveKeyboard, getFrequency, getKeyNote } from '../../utils/musicUtils';
 import { ChevronDownIcon } from '../Icons';
+import type { FingeringAssignment } from '../../services/fingeringAnalyzer';
+import { Hand, Finger } from '../../services/fingeringAnalyzer';
 import styles from './Keyboard.module.css';
 
 interface KeyboardProps {
   activeNotes?: Set<string>;
+  fingeringAssignments?: FingeringAssignment[];
+  currentTime?: number;
 }
 
-export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
+export function Keyboard({ 
+  activeNotes = new Set(), 
+  fingeringAssignments = [],
+  currentTime = 0 
+}: KeyboardProps) {
   const [pressedKeys, setPressedKeys] = useState<string[]>([]);
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [showLeftScroll, setShowLeftScroll] = useState(false);
@@ -16,6 +24,20 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const keyboardWrapperRef = useRef<HTMLDivElement>(null);
   const keyboardRef = useRef<HTMLDivElement>(null);
+  
+  // 获取当前时间的指法分配
+  const currentFingering = useMemo(() => {
+    const current = new Map<string, { hand: Hand; finger: Finger }>();
+    fingeringAssignments.forEach(assignment => {
+      if (assignment.time <= currentTime && assignment.time + assignment.duration >= currentTime) {
+        current.set(assignment.note, {
+          hand: assignment.hand,
+          finger: assignment.finger
+        });
+      }
+    });
+    return current;
+  }, [fingeringAssignments, currentTime]);
   
   // 根据屏幕宽度生成适当数量的键 - 使用useMemo优化
   const allKeys = useMemo(() => {
@@ -182,16 +204,20 @@ export function Keyboard({ activeNotes = new Set() }: KeyboardProps) {
       {/* 键盘区域 */}
       <div className={styles.keyboardWrapper} ref={keyboardWrapperRef}>
         <div className={styles.keyboard} ref={keyboardRef}>
-          {allKeys.map(({ note, black }) => (
-            <Key
-              key={note}
-              note={note}
-              isBlack={black}
-              isPressed={pressedKeys.includes(note) || activeNotes.has(note)}
-              onClick={handleKeyClick}
-              data-note={note}
-            />
-          ))}
+          {allKeys.map(({ note, black }) => {
+            const fingering = currentFingering.get(note);
+            return (
+              <Key
+                key={note}
+                note={note}
+                isBlack={black}
+                isPressed={pressedKeys.includes(note) || activeNotes.has(note)}
+                onClick={handleKeyClick}
+                data-note={note}
+                fingering={fingering}
+              />
+            );
+          })}
         </div>
       </div>
       

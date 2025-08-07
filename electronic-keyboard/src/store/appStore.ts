@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { Midi } from '@tonejs/midi';
 import { MidiPlayer, INSTRUMENTS } from '../services/midiPlayer';
 import { errorHandler } from '../services/errorHandler';
+import type { FingeringAssignment } from '../services/fingeringAnalyzer';
+import { FingeringAnalyzer } from '../services/fingeringAnalyzer';
 
 interface ExtractedNote {
   note: string;
@@ -32,6 +34,10 @@ interface AppState {
   extractedNotes: ExtractedNote[] | null;
   isPlayingExtractedNotes: boolean;
   
+  // Fingering states
+  fingeringAssignments: FingeringAssignment[];
+  fingeringAnalyzer: FingeringAnalyzer | null;
+  
   // Player references
   midiPlayer: MidiPlayer | null;
   extractedNotesTimeouts: number[];
@@ -56,6 +62,8 @@ interface AppState {
   setMidiPlayer: (player: MidiPlayer | null) => void;
   addExtractedNoteTimeout: (timeoutId: number) => void;
   clearExtractedNoteTimeouts: () => void;
+  setFingeringAssignments: (assignments: FingeringAssignment[]) => void;
+  analyzeFingeringForNotes: (notes: ExtractedNote[]) => void;
   
   // UI actions
   setLoading: (loading: boolean, message?: string) => void;
@@ -86,6 +94,8 @@ const useAppStore = create<AppState>((set, get) => ({
   currentInstrument: INSTRUMENTS[0],
   extractedNotes: null,
   isPlayingExtractedNotes: false,
+  fingeringAssignments: [],
+  fingeringAnalyzer: new FingeringAnalyzer(),
   midiPlayer: null,
   extractedNotesTimeouts: [],
   
@@ -115,11 +125,20 @@ const useAppStore = create<AppState>((set, get) => ({
   clearActiveNotes: () => set({ activeNotes: new Set() }),
   
   setCurrentInstrument: (instrument) => set({ currentInstrument: instrument }),
-  setExtractedNotes: (notes) => set({ 
-    extractedNotes: notes,
-    // Clear MIDI data when setting extracted notes
-    midiData: notes ? null : get().midiData
-  }),
+  setExtractedNotes: (notes) => {
+    set({ 
+      extractedNotes: notes,
+      // Clear MIDI data when setting extracted notes
+      midiData: notes ? null : get().midiData
+    });
+    
+    // Analyze fingering for the notes
+    if (notes && notes.length > 0) {
+      get().analyzeFingeringForNotes(notes);
+    } else {
+      set({ fingeringAssignments: [] });
+    }
+  },
   setIsPlayingExtractedNotes: (playing) => set({ isPlayingExtractedNotes: playing }),
   setMidiPlayer: (player) => set({ midiPlayer: player }),
   
@@ -132,6 +151,17 @@ const useAppStore = create<AppState>((set, get) => ({
     const { extractedNotesTimeouts } = get();
     extractedNotesTimeouts.forEach(id => clearTimeout(id));
     set({ extractedNotesTimeouts: [] });
+  },
+  
+  // Fingering actions
+  setFingeringAssignments: (assignments) => set({ fingeringAssignments: assignments }),
+  
+  analyzeFingeringForNotes: (notes) => {
+    const { fingeringAnalyzer } = get();
+    if (fingeringAnalyzer && notes.length > 0) {
+      const assignments = fingeringAnalyzer.analyzeNotes(notes);
+      set({ fingeringAssignments: assignments });
+    }
   },
   
   // UI actions
@@ -179,14 +209,37 @@ const useAppStore = create<AppState>((set, get) => ({
   loadMidi: async (midi: Midi) => {
     try {
       get().setLoading(true, '加载MIDI文件...');
-      const { midiPlayer } = get();
+      const { midiPlayer, fingeringAnalyzer } = get();
+      
+      // Extract notes from MIDI for fingering analysis
+      const notes: ExtractedNote[] = [];
+      midi.tracks.forEach(track => {
+        track.notes.forEach(note => {
+          notes.push({
+            note: note.name,
+            time: note.time,
+            duration: note.duration
+          });
+        });
+      });
+      
+      // Sort notes by time
+      notes.sort((a, b) => a.time - b.time);
+      
+      // Analyze fingering for MIDI notes
+      let fingeringAssignments: FingeringAssignment[] = [];
+      if (fingeringAnalyzer && notes.length > 0) {
+        fingeringAssignments = fingeringAnalyzer.analyzeNotes(notes);
+      }
+      
       set({
         midiData: midi,
         duration: midi.duration,
         currentTime: 0,
         // Clear extracted notes when loading MIDI
         extractedNotes: null,
-        isPlayingExtractedNotes: false
+        isPlayingExtractedNotes: false,
+        fingeringAssignments
       });
       
       if (midiPlayer) {
