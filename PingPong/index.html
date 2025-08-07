@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="score-board">
+            <div class="score player-score">0</div>
+            <div class="divider">:</div>
+            <div class="score ai-score">0</div>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="game-info">
+            <div class="status-message">点击开始游戏</div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn" class="btn">开始游戏</button>
+            <button id="pauseBtn" class="btn" disabled>暂停</button>
+            <button id="resetBtn" class="btn">重置</button>
+        </div>
+        
+        <div class="instructions">
+            <p>
+                <span class="desktop-only">使用鼠标或 W/S 键控制球拍</span>
+                <span class="mobile-only">触摸屏幕控制球拍</span>
+            </p>
+        </div>
+        
+        <div class="settings-panel" id="settingsPanel" style="display: none;">
+            <h3>游戏设置</h3>
+            <div class="setting-item">
+                <label for="soundToggle">
+                    <input type="checkbox" id="soundToggle" checked>
+                    音效
+                </label>
+            </div>
+            <div class="setting-item">
+                <label for="difficultySelect">难度：</label>
+                <select id="difficultySelect">
+                    <option value="easy">简单</option>
+                    <option value="normal" selected>普通</option>
+                    <option value="hard">困难</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
