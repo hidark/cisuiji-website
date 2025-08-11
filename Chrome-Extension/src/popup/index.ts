@@ -1,11 +1,19 @@
-import type { WordEntry, Statistics, ReviewRating } from '../shared/types';
-import { markWordReviewed, isWordDue, getDaysUntilDue, formatInterval } from '../core/srs';
+import type { WordEntry, Statistics, ReviewRating } from '../shared/types/index.js';
+import { markWordReviewed, isWordDue, getDaysUntilDue, formatInterval } from '../core/srs/index.js';
+import { ReviewCard, type ReviewCardProps } from '../components/ReviewCard/index.js';
+import { useReviewSession } from '../components/ReviewSession/index.js';
+import { useKeyboardShortcuts } from '../components/KeyboardHandler/index.js';
 
 class PopupApp {
-  private currentTab = 'due';
+  private currentTab = 'learning';
   private words: WordEntry[] = [];
   private statistics: Statistics | null = null;
   private reviewingWord: WordEntry | null = null;
+  
+  // Learning system components
+  private learningCard: ReviewCard | null = null;
+  private keyboardShortcuts = useKeyboardShortcuts({ enabled: false });
+  private unsubscribeFromStore: (() => void) | null = null;
 
   constructor() {
     this.init();
@@ -27,6 +35,9 @@ class PopupApp {
         }
       });
     });
+    
+    // Setup review system event listeners
+    this.setupReviewSystemListeners();
 
     // Footer buttons
     document.getElementById('refresh-btn')?.addEventListener('click', () => {
@@ -59,7 +70,7 @@ class PopupApp {
       }
     });
 
-    // Keyboard shortcuts
+    // Keyboard shortcuts for modal
     document.addEventListener('keydown', (e) => {
       if (this.reviewingWord) {
         switch (e.key) {
@@ -84,6 +95,46 @@ class PopupApp {
             break;
         }
       }
+    });
+  }
+  
+  private setupReviewSystemListeners(): void {
+    // Learning start button
+    const startLearningBtn = document.getElementById('start-learning-btn');
+    if (startLearningBtn) {
+      startLearningBtn.addEventListener('click', () => {
+        this.startLearningSession();
+      });
+    }
+    
+    // Word count slider for learning
+    const wordCountSlider = document.getElementById('learning-word-count') as HTMLInputElement;
+    const wordCountDisplay = document.querySelector('.word-count-display');
+    if (wordCountSlider && wordCountDisplay) {
+      wordCountSlider.addEventListener('input', () => {
+        wordCountDisplay.textContent = wordCountSlider.value;
+      });
+    }
+    
+    // Session complete handlers
+    const startNewSessionBtn = document.getElementById('start-new-learning-session');
+    const backToStartBtn = document.getElementById('back-to-learning-start');
+    
+    if (startNewSessionBtn) {
+      startNewSessionBtn.addEventListener('click', () => {
+        this.startNewLearningSession();
+      });
+    }
+    
+    if (backToStartBtn) {
+      backToStartBtn.addEventListener('click', () => {
+        this.showLearningStart();
+      });
+    }
+    
+    // Subscribe to learning session store changes
+    this.unsubscribeFromStore = useReviewSession.subscribe((state) => {
+      this.updateLearningUI(state);
     });
   }
 
@@ -213,6 +264,9 @@ class PopupApp {
 
   private renderCurrentTab(): void {
     switch (this.currentTab) {
+      case 'learning':
+        this.renderLearningTab();
+        break;
       case 'due':
         this.renderDueWords();
         break;
@@ -222,6 +276,153 @@ class PopupApp {
       case 'learned':
         this.renderLearnedWords();
         break;
+    }
+  }
+  
+  private renderLearningTab(): void {
+    // Show learning start by default
+    this.showLearningStart();
+  }
+  
+  private showLearningStart(): void {
+    const startContainer = document.getElementById('learning-start-container');
+    const sessionContainer = document.getElementById('learning-session-container');
+    const completeContainer = document.getElementById('learning-session-complete');
+    
+    if (startContainer) startContainer.classList.remove('hidden');
+    if (sessionContainer) sessionContainer.classList.add('hidden');
+    if (completeContainer) completeContainer.classList.add('hidden');
+    
+    // Disable keyboard shortcuts
+    this.keyboardShortcuts.disable();
+    
+    // Reset session state
+    useReviewSession.getState().resetSession();
+  }
+  
+  private async startLearningSession(): Promise<void> {
+    const wordCountSlider = document.getElementById('learning-word-count') as HTMLInputElement;
+    const wordCount = parseInt(wordCountSlider?.value || '20');
+    
+    // Check if there are any learning words first
+    const learningWords = this.words.filter(w => w.status === 'learning');
+    if (learningWords.length === 0) {
+      alert('没有可学习的单词！请先在网页上添加一些单词到你的单词本。');
+      return;
+    }
+    
+    // Hide start container, show session container
+    const startContainer = document.getElementById('learning-start-container');
+    const sessionContainer = document.getElementById('learning-session-container');
+    
+    if (startContainer) startContainer.classList.add('hidden');
+    if (sessionContainer) sessionContainer.classList.remove('hidden');
+    
+    // Enable keyboard shortcuts
+    this.keyboardShortcuts.enable();
+    
+    // Start the learning session with 'learning' mode
+    await useReviewSession.getState().startSession('learning', wordCount);
+    
+    // Setup learning card
+    this.setupLearningCard();
+  }
+  
+  private startNewLearningSession(): void {
+    const sessionState = useReviewSession.getState();
+    sessionState.startSession('learning');
+    
+    // Hide complete screen, show session
+    const sessionContainer = document.getElementById('learning-session-container');
+    const completeContainer = document.getElementById('learning-session-complete');
+    
+    if (sessionContainer) sessionContainer.classList.remove('hidden');
+    if (completeContainer) completeContainer.classList.add('hidden');
+    
+    this.keyboardShortcuts.enable();
+    this.setupLearningCard();
+  }
+  
+  private setupLearningCard(): void {
+    const cardContainer = document.getElementById('learning-card-container');
+    if (!cardContainer) return;
+    
+    const sessionState = useReviewSession.getState();
+    if (!sessionState.currentWord) return;
+    
+    const cardProps: ReviewCardProps = {
+      word: sessionState.currentWord,
+      isFlipped: sessionState.isCardFlipped,
+      onFlip: () => useReviewSession.getState().flipCard(),
+      onRate: (rating) => useReviewSession.getState().rateWord(rating),
+      showMeaning: sessionState.showMeaning
+    };
+    
+    if (this.learningCard) {
+      this.learningCard.updateProps(cardProps);
+    } else {
+      this.learningCard = new ReviewCard(cardContainer, cardProps);
+    }
+  }
+  
+  
+  private updateLearningUI(state: any): void {
+    // Update progress bar
+    const currentIndex = document.getElementById('current-word-index');
+    const totalCount = document.getElementById('total-words-count');
+    const progressFill = document.getElementById('progress-fill');
+    
+    if (currentIndex) currentIndex.textContent = (state.currentWordIndex + 1).toString();
+    if (totalCount) totalCount.textContent = state.totalWords.toString();
+    if (progressFill) {
+      const progress = state.totalWords > 0 ? ((state.currentWordIndex + 1) / state.totalWords) * 100 : 0;
+      progressFill.style.width = `${progress}%`;
+    }
+    
+    // Update learning card if needed
+    if (state.status === 'active' && state.currentWord && this.learningCard) {
+      const cardProps: ReviewCardProps = {
+        word: state.currentWord,
+        isFlipped: state.isCardFlipped,
+        onFlip: () => useReviewSession.getState().flipCard(),
+        onRate: (rating) => useReviewSession.getState().rateWord(rating),
+        showMeaning: state.showMeaning
+      };
+      this.learningCard.updateProps(cardProps);
+    }
+    
+    // Handle session completion
+    if (state.status === 'completed') {
+      this.showLearningComplete(state);
+    }
+  }
+  
+  private showLearningComplete(state: any): void {
+    const sessionContainer = document.getElementById('learning-session-container');
+    const completeContainer = document.getElementById('learning-session-complete');
+    
+    if (sessionContainer) sessionContainer.classList.add('hidden');
+    if (completeContainer) completeContainer.classList.remove('hidden');
+    
+    // Update stats
+    const wordCount = document.getElementById('session-word-count');
+    const avgRating = document.getElementById('session-avg-rating');
+    const duration = document.getElementById('session-duration');
+    
+    if (wordCount) wordCount.textContent = state.reviewedWords.length.toString();
+    if (avgRating) avgRating.textContent = state.averageRating.toFixed(1);
+    if (duration && state.startTime && state.endTime) {
+      const minutes = Math.round((state.endTime - state.startTime) / 60000);
+      duration.textContent = `${minutes}分钟`;
+    }
+    
+    // Disable keyboard shortcuts
+    this.keyboardShortcuts.disable();
+    
+    // Clean up learning card
+    if (this.learningCard) {
+      this.learningCard.destroy();
+      this.learningCard = null;
     }
   }
 
@@ -450,9 +651,28 @@ class PopupApp {
   private getDueWordsCount(): number {
     return this.words.filter(word => isWordDue(word)).length;
   }
+  
+  // Clean up when popup is closed
+  private cleanup(): void {
+    if (this.unsubscribeFromStore) {
+      this.unsubscribeFromStore();
+    }
+    
+    this.keyboardShortcuts.destroy();
+    
+    if (this.learningCard) {
+      this.learningCard.destroy();
+    }
+  }
 }
 
 // Initialize the popup app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  new PopupApp();
+  const app = new PopupApp();
+  
+  // Clean up when window is closed
+  window.addEventListener('beforeunload', () => {
+    // @ts-ignore
+    app.cleanup();
+  });
 });

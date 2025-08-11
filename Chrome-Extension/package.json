@@ -12,14 +12,18 @@
     "test": "vitest"
   },
   "dependencies": {
-    "idb": "^8.0.0"
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.12",
+    "idb": "^8.0.0",
+    "immer": "^10.1.1",
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0-beta.21",
     "@types/chrome": "^0.0.268",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
-    "@crxjs/vite-plugin": "^2.0.0-beta.21",
     "eslint": "^8.55.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.8",

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>词随记</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="../components/ReviewCard/ReviewCard.css">
 </head>
 <body>
   <div id="app" class="popup-container">
@@ -22,7 +23,11 @@
 
     <!-- Navigation Tabs -->
     <nav class="tab-nav">
-      <button id="tab-due" class="tab-button active" data-tab="due">
+      <button id="tab-learning" class="tab-button active" data-tab="learning">
+        <span class="tab-text">学习模式</span>
+        <span class="tab-icon">📚</span>
+      </button>
+      <button id="tab-due" class="tab-button" data-tab="due">
         <span class="tab-text">待复习</span>
         <span id="due-count" class="tab-badge">0</span>
       </button>
@@ -43,8 +48,66 @@
         <span>加载中...</span>
       </div>
 
+      <!-- Learning Session Tab -->
+      <div id="content-learning" class="tab-content active">
+        <div id="learning-start-container" class="learning-start-container">
+          <div class="learning-start-content">
+            <div class="start-icon">📚</div>
+            <h3>开始学习</h3>
+            <p>选择要学习的单词数量，开始你的学习之旅</p>
+            <div class="word-count-setting">
+              <label for="learning-word-count">学习单词数:</label>
+              <input type="range" id="learning-word-count" min="5" max="50" value="20" class="word-count-slider">
+              <span class="word-count-display">20</span>
+            </div>
+            <button id="start-learning-btn" class="btn-primary">开始学习</button>
+          </div>
+        </div>
+        <div id="learning-session-container" class="learning-session-container hidden">
+          <div id="learning-progress" class="review-progress">
+            <div class="progress-info">
+              <span id="current-word-index">1</span> / <span id="total-words-count">0</span>
+            </div>
+            <div class="progress-bar">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+          </div>
+          <div id="learning-card-container" class="review-card-container"></div>
+          <div id="keyboard-help" class="keyboard-help">
+            <div class="help-item">Space: 翻转卡片</div>
+            <div class="help-item">1-5: 评分</div>
+            <div class="help-item">← →: 上一张/下一张</div>
+            <div class="help-item">ESC: 退出学习</div>
+          </div>
+        </div>
+        <div id="learning-session-complete" class="session-complete-container hidden">
+          <div class="session-complete-content">
+            <div class="complete-icon">🎉</div>
+            <h3>学习完成！</h3>
+            <div class="session-stats">
+              <div class="stat-item">
+                <span class="stat-label">学习单词</span>
+                <span id="session-word-count" class="stat-value">0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">平均评分</span>
+                <span id="session-avg-rating" class="stat-value">0.0</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">用时</span>
+                <span id="session-duration" class="stat-value">0分钟</span>
+              </div>
+            </div>
+            <div class="session-actions">
+              <button id="start-new-learning-session" class="btn-primary">再来一轮</button>
+              <button id="back-to-learning-start" class="btn-secondary">返回开始页</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Due Words Tab -->
-      <div id="content-due" class="tab-content active">
+      <div id="content-due" class="tab-content">
         <div id="due-empty" class="empty-state hidden">
           <div class="empty-icon">🎉</div>
           <h3>今日复习完成！</h3>
