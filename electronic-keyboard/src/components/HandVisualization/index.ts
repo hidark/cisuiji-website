@@ -1,1 +1,0 @@
-export { HandVisualization } from './HandVisualization';

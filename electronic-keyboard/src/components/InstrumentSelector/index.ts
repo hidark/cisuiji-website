@@ -1,1 +1,0 @@
-export { InstrumentSelector } from './InstrumentSelector';
