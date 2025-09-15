@@ -1,2 +1,0 @@
-export { KeyboardHandler, DEFAULT_SHORTCUTS, type KeyboardShortcuts } from './KeyboardHandler.js';
-export { useKeyboardShortcuts, showKeyboardHelp, type UseKeyboardShortcutsOptions } from './useKeyboardShortcuts.js';
