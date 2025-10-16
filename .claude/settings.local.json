@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(claude mcp:*)",
+      "Bash(npx:*)",
+      "Bash(where npx)",
+      "Bash(uv tool install:*)",
+      "Bash(uv tool:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "enabledMcpjsonServers": [
+    "sequential-thinking",
+    "puppeteer",
+    "spec-workflow"
+  ]
+}

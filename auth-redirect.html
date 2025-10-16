@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邮箱验证成功 - 词随记 WordSnap</title>
+  <meta name="description" content="词随记邮箱验证成功页面">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 24px;
+      padding: 60px 40px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .icon-wrapper {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 32px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 20px rgba(102, 126, 234, 0);
+      }
+    }
+
+    .icon {
+      font-size: 48px;
+      animation: bounce 1s ease-in-out;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    h1 {
+      font-size: 32px;
+      color: #1a202c;
+      margin-bottom: 16px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: #718096;
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 18px 48px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+      width: 100%;
+      max-width: 300px;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .countdown {
+      font-size: 16px;
+      color: #667eea;
+      margin-top: 24px;
+      font-weight: 500;
+      min-height: 24px;
+    }
+
+    .note {
+      font-size: 14px;
+      color: #a0aec0;
+      margin-top: 32px;
+      line-height: 1.6;
+      padding: 20px;
+      background: #f7fafc;
+      border-radius: 12px;
+    }
+
+    .steps {
+      text-align: left;
+      margin-top: 24px;
+      padding: 20px;
+      background: #edf2f7;
+      border-radius: 12px;
+      display: none;
+    }
+
+    .steps h3 {
+      font-size: 16px;
+      color: #2d3748;
+      margin-bottom: 12px;
+    }
+
+    .steps ol {
+      margin-left: 20px;
+      color: #4a5568;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .error-message {
+      background: #fff5f5;
+      border: 1px solid #fc8181;
+      color: #c53030;
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 24px;
+      display: none;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      margin: 20px auto;
+      border: 4px solid #e2e8f0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 480px) {
+      .container {
+        padding: 40px 24px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+
+      .button {
+        font-size: 16px;
+        padding: 16px 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon-wrapper">
+      <div class="icon">✅</div>
+    </div>
+
+    <h1 id="title">邮箱验证成功！</h1>
+    <p class="subtitle" id="subtitle">
+      您的邮箱已成功验证。点击下方按钮打开词随记扩展继续使用。
+    </p>
+
+    <button class="button" id="open-button" onclick="openExtension()">
+      打开词随记扩展
+    </button>
+
+    <div class="countdown" id="countdown">
+      <span id="countdown-text">3 秒后自动打开...</span>
+    </div>
+
+    <div class="spinner" id="spinner"></div>
+
+    <div class="error-message" id="error-message">
+      ❌ 无法自动打开扩展。请按照下方步骤手动操作。
+    </div>
+
+    <div class="note">
+      <strong>💡 提示：</strong>
+      如果没有自动打开，请确保您已安装"词随记 WordSnap"扩展。
+    </div>
+
+    <div class="steps" id="manual-steps">
+      <h3>手动打开扩展：</h3>
+      <ol>
+        <li>点击浏览器工具栏右上角的扩展图标（拼图形状）</li>
+        <li>找到"词随记-WordSnap"</li>
+        <li>点击扩展图标或选择"选项"</li>
+        <li>使用您的账号登录</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================================
+    // 配置部分
+    // ============================================================================
+
+    // ⚠️ 重要：这个扩展 ID 需要在用户安装后才能确定
+    // 对于已发布到 Chrome Web Store 的扩展，ID 是固定的
+    // 对于开发模式的扩展，每次加载 ID 可能不同
+
+    // 词随记扩展的 Chrome Web Store ID（如果已发布）
+    // 或者您的开发环境扩展 ID
+    const EXTENSION_ID = 'pambnljhfebdfjpemkgbacebcgdfallm'; // 替换为实际 ID
+
+    // 构建扩展 URL
+    const EXTENSION_OPTIONS_URL = `chrome-extension://${EXTENSION_ID}/src/options/index.html`;
+
+    // ============================================================================
+    // 核心功能
+    // ============================================================================
+
+    let countdownValue = 3;
+    let countdownTimer = null;
+    let hasAttemptedOpen = false;
+
+    /**
+     * 尝试打开扩展
+     */
+    function openExtension() {
+      const button = document.getElementById('open-button');
+      const countdownEl = document.getElementById('countdown');
+      const spinner = document.getElementById('spinner');
+      const errorMessage = document.getElementById('error-message');
+      const manualSteps = document.getElementById('manual-steps');
+
+      // 停止倒计时
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+      }
+
+      // 标记已尝试打开
+      hasAttemptedOpen = true;
+
+      // 更新 UI
+      button.disabled = true;
+      button.textContent = '正在打开...';
+      countdownEl.style.display = 'none';
+      spinner.style.display = 'block';
+
+      // 尝试跳转到扩展
+      console.log('Attempting to open extension:', EXTENSION_OPTIONS_URL);
+
+      try {
+        window.location.href = EXTENSION_OPTIONS_URL;
+      } catch (error) {
+        console.error('Failed to open extension:', error);
+        showError();
+        return;
+      }
+
+      // 检测是否成功打开
+      // 如果 3 秒后页面仍然有焦点，说明没有成功跳转
+      setTimeout(() => {
+        if (document.hasFocus()) {
+          console.log('Page still has focus - extension might not have opened');
+          showError();
+        }
+      }, 3000);
+    }
+
+    /**
+     * 显示错误提示和手动步骤
+     */
+    function showError() {
+      const button = document.getElementById('open-button');
+      const spinner = document.getElementById('spinner');
+      const errorMessage = document.getElementById('error-message');
+      const manualSteps = document.getElementById('manual-steps');
+
+      button.disabled = false;
+      button.textContent = '重试打开扩展';
+      spinner.style.display = 'none';
+      errorMessage.style.display = 'block';
+      manualSteps.style.display = 'block';
+    }
+
+    /**
+     * 启动倒计时
+     */
+    function startCountdown() {
+      const countdownTextEl = document.getElementById('countdown-text');
+
+      countdownTimer = setInterval(() => {
+        countdownValue--;
+
+        if (countdownValue > 0) {
+          countdownTextEl.textContent = `${countdownValue} 秒后自动打开...`;
+        } else {
+          clearInterval(countdownTimer);
+          countdownTextEl.textContent = '正在打开扩展...';
+          openExtension();
+        }
+      }, 1000);
+    }
+
+    /**
+     * 检查 URL 参数
+     */
+    function checkUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      const type = params.get('type');
+      const error = params.get('error');
+      const errorDescription = params.get('error_description');
+
+      console.log('URL params:', { token, type, error, errorDescription });
+
+      // 如果有错误参数，显示错误
+      if (error) {
+        const titleEl = document.getElementById('title');
+        const subtitleEl = document.getElementById('subtitle');
+        const errorMessage = document.getElementById('error-message');
+        const countdown = document.getElementById('countdown');
+        const button = document.getElementById('open-button');
+
+        titleEl.textContent = '验证失败';
+        subtitleEl.textContent = errorDescription || '邮箱验证遇到问题，请重试。';
+        errorMessage.style.display = 'block';
+        errorMessage.textContent = `❌ ${errorDescription || error}`;
+        countdown.style.display = 'none';
+        button.textContent = '返回扩展';
+
+        return false;
+      }
+
+      return true;
+    }
+
+    /**
+     * 检测扩展是否已安装
+     */
+    function detectExtension() {
+      // 尝试创建一个指向扩展资源的 img 元素
+      // 如果扩展已安装，资源可以加载
+      // 注意：这需要扩展在 manifest 中配置 web_accessible_resources
+
+      return new Promise((resolve) => {
+        const img = new Image();
+        const timeout = setTimeout(() => {
+          resolve(false);
+        }, 2000);
+
+        img.onload = () => {
+          clearTimeout(timeout);
+          resolve(true);
+        };
+
+        img.onerror = () => {
+          clearTimeout(timeout);
+          resolve(false);
+        };
+
+        // 尝试加载扩展的图标
+        img.src = `chrome-extension://${EXTENSION_ID}/src/assets/icon16.png`;
+      });
+    }
+
+    /**
+     * 初始化
+     */
+    async function init() {
+      // 检查 URL 参数
+      const isValid = checkUrlParams();
+      if (!isValid) {
+        return;
+      }
+
+      // 检测扩展是否已安装
+      const extensionInstalled = await detectExtension();
+      console.log('Extension installed:', extensionInstalled);
+
+      if (!extensionInstalled) {
+        // 扩展未安装，显示提示
+        const subtitle = document.getElementById('subtitle');
+        const button = document.getElementById('open-button');
+        const countdown = document.getElementById('countdown');
+        const note = document.querySelector('.note');
+
+        subtitle.innerHTML = '请先安装"词随记 WordSnap"扩展。<br>安装后刷新此页面。';
+        button.textContent = '前往 Chrome 应用商店';
+        button.onclick = () => {
+          // 替换为实际的 Chrome Web Store 链接
+          window.open('https://chrome.google.com/webstore/detail/wordsnap/YOUR_STORE_ID', '_blank');
+        };
+        countdown.style.display = 'none';
+        note.innerHTML = '<strong>⚠️ 注意：</strong>您需要先安装扩展才能继续。';
+
+        return;
+      }
+
+      // 启动自动跳转倒计时
+      startCountdown();
+    }
+
+    // 页面加载完成后初始化
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+
+    // 监听页面可见性变化
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && hasAttemptedOpen) {
+        // 页面失去焦点，可能是成功打开了扩展
+        console.log('Page lost focus - extension likely opened successfully');
+      }
+    });
+
+    // 防止页面后退
+    window.history.pushState(null, '', window.location.href);
+    window.onpopstate = () => {
+      window.history.pushState(null, '', window.location.href);
+    };
+  </script>
+</body>
+</html>
